@@ -1,6 +1,5 @@
 # Smart Robot Demo on Raspberry Pi 
 
-## Introduction
 This demo showcases a conversational robot built on a Raspberry Pi 4, transforming it into an interactive gadget capable of answering questions. The system leverages OpenAI for generating responses and utilizes Redpanda Connect for efficient data processing. The main inference work runs on a more powerful server, either local or cloud-based, while the Raspberry Pi handles real-time interaction with users. Despite its limited hardware resources, the edge device can efficiently manages speech-to-text conversion, communication with the central hub, and text-to-speech playback.
 
 ![Demo View](images/demoview.png)
@@ -53,10 +52,106 @@ This demo showcases a conversational robot built on a Raspberry Pi 4, transformi
     - The `talk.py` application converts the text answer to speech and plays it through the speaker.
 
 
+## Install & Deploy
+
+### Edge Device (Raspberry Pi 4)
+
+- Operating System: Ubuntu:  24.04 LTS
+- Python: 3.12
+- Install Mosquitto: 2.0.18 
+  - create `/etc/mosquitto/conf.d/mosquitto.conf` with following setting
+```
+listener 1883 0.0.0.0
+allow_anonymous true
+```
+- Start the Mosquitto server
+
+Install rpk 
+
+```
+curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
+sudo -E bash && sudo apt install redpanda -y
+```
+
+Check and configure your microphone, where it will display the list of CAPTURE Hardware Devices
+```
+arecord -l
+```
+
+My audio device is on card 1
+```
+card 1: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
+....
+```
+
+Depends on your microphone setting, set your `/etc/asound.conf`
+
+```
+pcm.!default {
+    type plug
+    slave.pcm.type pipewire
+}
+
+ctl.!default {
+    type hw
+    card 1
+}
+```
+
+Copy files under folder to your edge device
+```
+|
+|-/s2t/streams.py
+|-/t2s/talk.py
+|-/connect/*.yaml
+```
+
+
+```
+sudo apt-get install espeak
+sudo apt-get install python3-espeak
+```
+
+```
+% cat > demo/.env<< EOF
+ASSIGNMENT_HOST=<central_hub_ip_address:central_hub_api_port>
+EDGE_HOST=<edge_ip_address>
+REDPANDA_SERVER=<bootstrap_server_url>
+REDPANDA_USERNAME=<username>
+REDPANDA_PASSWORD=password>
+
+EOF
+```
+
+
+First, let's run the init.yaml to setup the 
+
+```
+rpk connect run init.yaml
+```
 
 
 
+```
+rpk connect run edgepipe.yaml
+```
 
 
-
+```
 export ASSIGNED_TOPIC=$(cat ./assigned_topic)
+rpk connect run talkpipe.yaml
+```
+
+```
+pip install -r  requirements.txt
+```
+
+```
+source env/bin/activate
+python stream.py  2>/dev/null
+```
+
+
+```
+python talk.pu
+```

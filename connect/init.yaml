@@ -17,7 +17,7 @@ pipeline:
     - log:
         message: msg sent:" ${!content()}
     - http:
-        url: 'http://${ASSIGMENT_HOST}/assign'
+        url: 'http://${ASSIGNMENT_HOST}/assign'
         verb: POST
         headers:
           Accept: "application/json"
