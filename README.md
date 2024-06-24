@@ -110,6 +110,7 @@ Copy files under folder to your edge device
 ```
 sudo apt-get install espeak
 sudo apt-get install python3-espeak
+sudo apt-get install python3-paho-mqtt
 ```
 
 ```
