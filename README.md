@@ -7,9 +7,8 @@ This demo showcases a conversational robot built on a Raspberry Pi 4, transformi
 
 ## High-Level Architecture
 
-Edge Device (Raspberry Pi 4)
-
-- MQTT Server (Mosquitto): Manages communication between the microphone, the text-to-speech application, and the central hub.
+- Edge Device (Raspberry Pi 4)
+    - **MQTT Server (Mosquitto)**: Manages communication between the microphone, the text-to-speech application, and the central hub.
     - **Stream Application (stream.py)**: Uses faster_whisper to transcribe speech into text, parses it into chunks, and sends them to the MQTT server.
     - **Talk Application (talk.py)**: Converts text back to speech and plays it through the speaker.
     - **Dynamic Topic Assignment (init.yaml)**: Uses Redpanda Connect, run when the edge device first boots, to get an assigned topic name for the device.
@@ -23,14 +22,14 @@ Edge Device (Raspberry Pi 4)
   - **Inference RAG Program (inference.py)**: Processes incoming queries using document search with a vector database and generates accurate answers by interfacing with OpenAI.
   - **Dynamic Topic Assignment (assignment.py)**: Assigns topics to edge devices based on load to manage the number of topics efficiently. (Since this is a demo, we are just hardcoding the topic name, but in the real world, you should have a strategy of grouping devices based on load and locations.)
 
-Technologies Used
-    - `Raspberry Pi 4`: Low-cost, single-board computer serving as the edge device.
-    - `MQTT Server (Mosquitto)`: Lightweight messaging protocol for small sensors and mobile devices, optimized for high-latency or unreliable networks.
-    - `Faster Whisper`: A lightweight model for real-time speech-to-text conversion.
-    - `Redpanda Connect`: Runs on the edge device to manage lightweight and fast data transfer, pre-processing, and aggregation of transcribed text.
-    - `Redpanda Serverless` : Central messaging system enabling efficient communication between devices and servers.
-    - `Mongo Atlas`: Document Search with Vector Database, used by the RAG program to provide contextually accurate answers.
-    - `OpenAI` : Generates responses based on the context provided by the document search.
+## Technologies Used
+  - `Raspberry Pi 4`: Low-cost, single-board computer serving as the edge device.
+  - `MQTT Server (Mosquitto)`: Lightweight messaging protocol for small sensors and mobile devices, optimized for high-latency or unreliable networks.
+  - `Faster Whisper`: A lightweight model for real-time speech-to-text conversion.
+  - `Redpanda Connect`: Runs on the edge device to manage lightweight and fast data transfer, pre-processing, and aggregation of transcribed text.
+  - `Redpanda Serverless` : Central messaging system enabling efficient communication between devices and servers.
+  - `Mongo Atlas`: Document Search with Vector Database, used by the RAG program to provide contextually accurate answers.
+  - `OpenAI` : Generates responses based on the context provided by the document search.
 
 ## Workflow
 
