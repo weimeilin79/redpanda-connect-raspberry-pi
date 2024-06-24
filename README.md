@@ -54,6 +54,62 @@ This demo showcases a conversational robot built on a Raspberry Pi 4, transformi
 
 ## Install & Deploy
 
+### Redpanda Serverless
+Sign up if you have not already done so.
+- Create a new Serverless virtual cluster. 
+- Make a note of the bootstrap server URL, 
+- Create a new user with permissions (ACLs)
+- Create topics `prompts` and `responses`
+
+### Central Hub
+
+Copy files under `local` folder
+```
+|
+|-/local
+```
+
+Set environment variables
+```
+cd local
+% cat > .env<< EOF
+OPENAI_MODEL="gpt-4o"
+OPENAI_API_KEY=<openai_key>
+OPENAI_ORGANIZATION_ID=<openai_org_id>
+OPENAI_EMBEDDING_MODE = "text-embedding-3-small"
+
+MONGODB_URI = "<mongo_atlas_uri>"
+DB_NAME = "<mongo_dbname>"
+COLLECTION_NAME = "<collection name of vector store>"
+INDEX_NAME = "<index in the collection>"
+
+REDPANDA_SERVER=<bootstrap_server_url>
+REDPANDA_USER=<username>
+REDPANDA_PWD=<password>
+
+EOF
+export $(grep -v '^#' .env | xargs)
+```
+
+
+Install the python libraries to start the inference application
+```
+python3 -m venv env
+pip install -r  requirements.txt
+```
+
+Start the inference application, it'll retrieve relevant doc from MongoDB, and use it with the query to invoke OpenAI model
+```
+source env/bin/activate
+python3 inference.py
+```
+
+Start the assignment API service, that will tell edge which topic the response will send to:
+```
+python3 assignment.py
+```
+
+
 ### Edge Device (Raspberry Pi 4)
 
 - Operating System: Ubuntu:  24.04 LTS
@@ -114,9 +170,10 @@ Copy files under folder to your edge device
 |-/connect/*.yaml
 ```
 
-
+Set environment variables
 ```
-% cat > demo/.env<< EOF
+cd connect/
+% cat > .env<< EOF
 ASSIGNMENT_HOST=<central_hub_ip_address:central_hub_api_port>
 EDGE_HOST=<edge_ip_address>
 REDPANDA_SERVER=<bootstrap_server_url>
@@ -124,13 +181,13 @@ REDPANDA_USERNAME=<username>
 REDPANDA_PASSWORD=password>
 
 EOF
+export $(grep -v '^#' .env | xargs)
 ```
 
 
 Run the init.yaml to get the assigned topic name (Make sure your assignment service in central hub is already up and running)
 
 ```
-cd connect/
 rpk connect run init.yaml
 ```
 
@@ -149,16 +206,20 @@ rpk connect run talkpipe.yaml
 Install the python libraries to start the speech to text application
 ```
 cd s2t/
+python3 -m venv env
 pip install -r  requirements.txt
 ```
 
-start the speech to text application, once start you can enter `s` to start asking question and `e` to stop the listening and start processing your query.
+Start the speech to text application, once start you can enter `s` to start asking question and `e` to stop the listening and start processing your query.
 ```
 source env/bin/activate
-python stream.py  2>/dev/null
+python3 stream.py  2>/dev/null
 ```
 
-start the application that will trigger your edge device to talk, (input content via MQTT)
+Start the application that will trigger your edge device to talk, (input content via MQTT)
 ```
-python talk.py
+cd t2s/
+python3 talk.py
 ```
+
+
