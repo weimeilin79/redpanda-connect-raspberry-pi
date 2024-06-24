@@ -98,6 +98,14 @@ ctl.!default {
 }
 ```
 
+Install the common libraries, some needs system level
+```
+sudo apt-get install espeak
+sudo apt-get install python3-espeak
+sudo apt-get install python3-paho-mqtt
+```
+
+
 Copy files under folder to your edge device
 ```
 |
@@ -106,12 +114,6 @@ Copy files under folder to your edge device
 |-/connect/*.yaml
 ```
 
-
-```
-sudo apt-get install espeak
-sudo apt-get install python3-espeak
-sudo apt-get install python3-paho-mqtt
-```
 
 ```
 % cat > demo/.env<< EOF
@@ -125,34 +127,38 @@ EOF
 ```
 
 
-First, let's run the init.yaml to setup the 
+Run the init.yaml to get the assigned topic name (Make sure your assignment service in central hub is already up and running)
 
 ```
+cd connect/
 rpk connect run init.yaml
 ```
 
 
-
+Start the pipeline that will pre-process data by aggregating chunks of transcribed data in a 30 second window time frame and along with the assigned topic name, forward it to the Redpanda cluster on central hub.
 ```
 rpk connect run edgepipe.yaml
 ```
 
-
+Start the pipeline that consumes from the assigned topic, and only forward the matched hostname to the MQTT broker
 ```
 export ASSIGNED_TOPIC=$(cat ./assigned_topic)
 rpk connect run talkpipe.yaml
 ```
 
+Install the python libraries to start the speech to text application
 ```
+cd s2t/
 pip install -r  requirements.txt
 ```
 
+start the speech to text application, once start you can enter `s` to start asking question and `e` to stop the listening and start processing your query.
 ```
 source env/bin/activate
 python stream.py  2>/dev/null
 ```
 
-
+start the application that will trigger your edge device to talk, (input content via MQTT)
 ```
-python talk.pu
+python talk.py
 ```
