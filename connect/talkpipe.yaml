@@ -1,0 +1,32 @@
+http:
+   enabled: false
+input:
+
+  kafka_franz:
+    seed_brokers:
+      - ${REDPANDA_SERVER}
+    tls:
+      enabled: true
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: ${REDPANDA_USERNAME}
+        password: ${REDPANDA_PASSWORD}
+    topics: ["${ASSIGNED_TOPIC}"]
+    consumer_group: talk_pipe_group
+pipeline:
+  threads: 1
+  processors: 
+    - log:
+        message: Send back to Raspberry:" ${!content()}
+output:
+  mqtt:
+    urls: ["tcp://${EDGE_HOST}:1883"]
+    client_id: "talkpipe"
+    qos: 2
+    write_timeout: 3s
+    retained: false
+    max_in_flight: 3
+    topic: "talk"
+logger:
+  level: INFO
+  format: logfmt

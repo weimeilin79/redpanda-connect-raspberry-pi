@@ -1,0 +1,68 @@
+http:
+  enabled: false
+input:
+  mqtt:
+    urls: ["tcp://${EDGE_HOST}:1883"]
+    client_id: "transcriber"
+    dynamic_client_id_suffix: "" 
+    connect_timeout: 3600s
+    will:
+      enabled: false
+      qos: 0
+      retained: false
+      topic: ""
+      payload: ""
+    keepalive: 30
+    topics: ["transcription"]
+    qos: 1
+    clean_session: true
+buffer:
+  system_window:
+    timestamp_mapping: root = now()
+    size: 30s
+pipeline:
+  threads: 1
+  processors: 
+    - log:
+        message: MQTT ingested:" ${!content()}
+    - mapping: |
+        let is_first_message = (batch_index() == 0)
+        root = content().from_all().join(" ")
+        root = if ! $is_first_message {
+          deleted()
+        }
+    - log:
+        message: Combined to prompt:" ${!content()}
+    - mapping: | 
+        root.prompt = content().string()
+        root.device_id = hostname()
+    - branch:
+        processors:
+          - cache:
+              resource: assigned_topic
+              operator: get
+              key: assigned_topic
+        result_map: 'root.assigned_topic = content().string()'
+    - log:
+        message: Msg to Redpanda:" ${!content()}
+cache_resources:
+  - label: assigned_topic
+    file:
+      directory: ./
+output:
+  kafka_franz:
+    seed_brokers:
+      - ${REDPANDA_SERVER}
+    tls:
+      enabled: true
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: ${REDPANDA_USERNAME}
+        password: ${REDPANDA_PASSWORD}
+    topic: "prompts" 
+    client_id: edge_pipe
+logger:
+  level: INFO
+  format: logfmt
+
+

@@ -1,0 +1,38 @@
+input:
+  type: generate
+  generate:
+    count: 1
+    interval: 0s
+    mapping: |
+      root.initial = true
+pipeline:
+  processors:
+    - command:
+        name: bash
+        args_mapping: '[ "-c", "hostname -I" ]'
+    - log:
+        message: hostname:" ${!content()}
+    - mapping: |
+            root.device_id = content()
+    - log:
+        message: msg sent:" ${!content()}
+    - http:
+        url: 'http://${ASSIGMENT_HOST}/assign'
+        verb: POST
+        headers:
+          Accept: "application/json"
+        retries: 3
+        timeout: 5s
+    - mapping: |
+          root = this.assigned_topic
+output:  
+  cache:
+    target: assigned_topic
+    key: assigned_topic
+cache_resources:
+  - label: assigned_topic
+    file:
+      directory: ./
+logger:
+  level: DEBUG
+  format: logfmt
