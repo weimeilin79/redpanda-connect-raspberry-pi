@@ -17,7 +17,16 @@ pipeline:
   threads: 1
   processors: 
     - log:
-        message: Send back to Raspberry:" ${!content()}
+        message: Send from inference:" ${!content().string()}
+    - mapping: |
+        if hostname() != this.device_id {
+          root = deleted()
+        }else{
+          root = this.response
+        }
+    - log:
+        message: Send back to Raspberry:" ${!content().string()}
+    
 output:
   mqtt:
     urls: ["tcp://${EDGE_HOST}:1883"]
