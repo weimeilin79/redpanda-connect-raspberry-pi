@@ -4,6 +4,8 @@ This demo showcases a conversational robot built on a Raspberry Pi 4, transformi
 
 ![Demo View](images/demoview.png)
 
+Here is the video of the demo running: https://www.youtube.com/watch?v=8aJlImtFzn4
+
 ## High-Level Architecture
 
 - Edge Device (Raspberry Pi 4)
